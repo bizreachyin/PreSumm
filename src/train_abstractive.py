@@ -15,7 +15,7 @@ import torch
 
 import distributed
 from models import data_loader, model_builder
-from models.data_loader import load_dataset
+from models.data_loader import load_dataset, load_dataset_api
 from models.loss import abs_loss
 from models.model_builder import AbsSummarizer
 from models.predictor import build_predictor
@@ -269,10 +269,11 @@ def abs_api(args):
                'PAD': tokenizer.vocab['[PAD]'], 'EOQ': tokenizer.vocab['[unused2]']}
     predictor = build_predictor(args, tokenizer, symbols, model, logger)
 
-    test_iter = data_loader.Dataloader(args, torch.load(args.to_be_decoded),
+    test_iter = data_loader.Dataloader(args, load_dataset_api(args),
                                        args.test_batch_size, device,
                                        shuffle=False, is_test=True)
     
+    predictor.translate(test_iter, step=0)
 
 def test_text_abs(args, device_id, pt, step):
     device = "cpu" if args.visible_gpus == '-1' else "cuda"

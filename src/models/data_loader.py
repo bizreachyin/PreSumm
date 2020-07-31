@@ -93,6 +93,8 @@ def load_dataset(args, corpus_type, shuffle):
         pt = args.bert_data_path + '.' + corpus_type + '.pt'
         yield _lazy_dataset_loader(pt, corpus_type)
 
+def load_dataset_api(args):
+    yield torch.load(args.to_be_decoded)
 
 def abs_batch_size_fn(new, count):
     src, tgt = new[0], new[1]
