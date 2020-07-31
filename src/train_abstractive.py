@@ -245,6 +245,34 @@ def test_abs(args, device_id, pt, step):
     predictor = build_predictor(args, tokenizer, symbols, model, logger)
     predictor.translate(test_iter, step)
 
+def abs_api(args):
+    device = "cpu" if args.visible_gpus == '-1' else "cuda"
+    pt = args.pt
+    logger.info('Loading checkpoint from %s' % pt)
+
+    checkpoint = torch.load(pt, map_location=lambda storage, loc: storage)
+
+    opt = vars(checkpoint['opt'])
+
+    for k in opt.keys():
+        if (k in model_flags):
+            setattr(args, k, opt[k])
+    print(args)
+
+    model = AbsSummarizer(args, device, checkpoint)
+    model.eval()
+
+    tokenizer = PreSummTokenizer(args.is_japanese,
+                                 do_lower_case=True,
+                                 cache_dir=args.temp_dir)
+    symbols = {'BOS': tokenizer.vocab['[unused0]'], 'EOS': tokenizer.vocab['[unused1]'],
+               'PAD': tokenizer.vocab['[PAD]'], 'EOQ': tokenizer.vocab['[unused2]']}
+    predictor = build_predictor(args, tokenizer, symbols, model, logger)
+
+    test_iter = data_loader.Dataloader(args, torch.load(args.to_be_decoded),
+                                       args.test_batch_size, device,
+                                       shuffle=False, is_test=True)
+    
 
 def test_text_abs(args, device_id, pt, step):
     device = "cpu" if args.visible_gpus == '-1' else "cuda"

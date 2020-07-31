@@ -7,7 +7,7 @@ from __future__ import division
 import argparse
 import os
 from others.logging import init_logger
-from train_abstractive import validate_abs, train_abs, baseline, test_abs, test_text_abs
+from train_abstractive import validate_abs, train_abs, baseline, test_abs, test_text_abs, abs_api
 from train_extractive import train_ext, validate_ext, test_ext
 
 model_flags = ['hidden_size', 'ff_size', 'heads', 'emb_size', 'enc_layers', 'enc_hidden_size', 'enc_ff_size',
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument("-encoder", default='bert',
                         type=str, choices=['bert', 'baseline'])
     parser.add_argument("-mode", default='train', type=str,
-                        choices=['train', 'validate', 'test'])
+                        choices=['train', 'validate', 'test', 'abs_api'])
     parser.add_argument("-bert_data_path", default='../bert_data_new/cnndm')
     parser.add_argument("-model_path", default='../models/')
     parser.add_argument("-result_path", default='../results/cnndm')
@@ -119,6 +119,8 @@ if __name__ == '__main__':
 
     # additional arguments
     parser.add_argument('--is-japanese', action='store_true')
+    parser.add_argument('-pt', default='')
+    parser.add_argument('-to_be_decoded', default='')
 
     args = parser.parse_args()
     args.gpu_ranks = [int(i) for i in range(len(args.visible_gpus.split(',')))]
@@ -130,6 +132,8 @@ if __name__ == '__main__':
     device_id = 0 if device == "cuda" else -1
 
     if (args.task == 'abs'):
+        if (args.mode == 'abs_api'):
+            abs_api(args)
         if (args.mode == 'train'):
             train_abs(args, device_id)
         elif (args.mode == 'validate'):
