@@ -22,8 +22,14 @@ class GreedySelector:
                 if (i in selected):
                     continue
                 c = selected + [i]
-                hypothesis = '\n'.join([doc_sent_list[idx] for idx in c])
-                reference = '\n'.join([abstract_sent_list[idx] for idx in c])
+                hypothesis = '\n'.join([
+                    ' '.join(doc_sent_list[idx])
+                    for idx in c
+                ])
+                reference = '\n'.join([
+                    ' '.join(tokens)
+                    for tokens in abstract_sent_list
+                ])
                 score = self._rouge.get_scores(hypothesis, reference)
                 rouge_1 = score[0]['rouge-1']['f']
                 rouge_2 = score[0]['rouge-2']['f']
@@ -208,5 +214,6 @@ def main():
 
     converter = PreSummDataConverter()
     dataset = df.apply(lambda x: converter(getattr(x, args.src_col),
-                                           getattr(x, args.tgt_col)))
+                                           getattr(x, args.tgt_col)),
+                       axis=1)
     torch.save(dataset, 'bert_data/jp.all.bert.pt')
