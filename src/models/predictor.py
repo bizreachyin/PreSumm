@@ -102,15 +102,15 @@ class Translator(object):
                 len(translation_batch["predictions"]))
         batch_size = batch.batch_size
 
-        preds, pred_score, gold_score, tgt_str, src = translation_batch["predictions"], translation_batch[
-            "scores"], translation_batch["gold_score"], batch.tgt_str, batch.src
+        preds, pred_score, gold_score, src = translation_batch["predictions"], translation_batch[
+            "scores"], translation_batch["gold_score"], batch.src
 
         translations = []
         for b in range(batch_size):
             pred_sents = self.vocab.convert_ids_to_tokens(
                 [int(n) for n in preds[b][0]])
             pred_sents = ' '.join(pred_sents).replace(' ##', '')
-            gold_sent = ' '.join(tgt_str[b].split())
+            #gold_sent = ' '.join(tgt_str[b].split())
             # translation = Translation(fname[b],src[:, b] if src is not None else None,
             #                           src_raw, pred_sents,
             #                           attn[b], pred_score[b], gold_sent,
@@ -119,7 +119,8 @@ class Translator(object):
             raw_src = [
                 self.vocab.convert_ids_to_tokens([int(t)])[0] for t in src[b]][:500]
             raw_src = ' '.join(raw_src)
-            translation = (pred_sents, gold_sent, raw_src)
+            translation = (pred_sents, raw_src)
+            #translation = (pred_sents, gold_sent, raw_src)
             # translation = (pred_sents[0], gold_sent)
             translations.append(translation)
 
@@ -155,10 +156,11 @@ class Translator(object):
                 translations = self.from_batch(batch_data)
 
                 for trans in translations:
-                    pred, gold, src = trans
+                    pred, src = trans
+                    #pred, gold, src = trans
                     pred_str = pred.replace('[unused0]', '').replace('[unused3]', '').replace('[PAD]', '').replace(
                         '[unused1]', '').replace(r' +', ' ').replace(' [unused2] ', '<q>').replace('[unused2]', '').strip()
-                    gold_str = gold.strip()
+                    #gold_str = gold.strip()
                     if(self.args.recall_eval):
                         _pred_str = ''
                         gap = 1e3
@@ -178,28 +180,28 @@ class Translator(object):
                     # self.raw_can_out_file.write(' '.join(pred).strip() + '\n')
                     # self.raw_gold_out_file.write(' '.join(gold).strip() + '\n')
                     self.can_out_file.write(pred_str + '\n')
-                    self.gold_out_file.write(gold_str + '\n')
+                    #self.gold_out_file.write(gold_str + '\n')
                     self.src_out_file.write(src.strip() + '\n')
                     ct += 1
                 self.can_out_file.flush()
-                self.gold_out_file.flush()
+                #self.gold_out_file.flush()
                 self.src_out_file.flush()
 
         self.can_out_file.close()
-        self.gold_out_file.close()
+        #self.gold_out_file.close()
         self.src_out_file.close()
 
-        if (step != -1):
-            rouges = self._report_rouge(gold_path, can_path)
-            self.logger.info('Rouges at step %d \n%s' %
-                             (step, rouge_results_to_str(rouges)))
-            if self.tensorboard_writer is not None:
-                self.tensorboard_writer.add_scalar(
-                    'test/rouge1-F', rouges['rouge_1_f_score'], step)
-                self.tensorboard_writer.add_scalar(
-                    'test/rouge2-F', rouges['rouge_2_f_score'], step)
-                self.tensorboard_writer.add_scalar(
-                    'test/rougeL-F', rouges['rouge_l_f_score'], step)
+        #if (step != -1):
+        #    rouges = self._report_rouge(gold_path, can_path)
+        #    self.logger.info('Rouges at step %d \n%s' %
+        #                     (step, rouge_results_to_str(rouges)))
+        #    if self.tensorboard_writer is not None:
+        #        self.tensorboard_writer.add_scalar(
+        #            'test/rouge1-F', rouges['rouge_1_f_score'], step)
+        #        self.tensorboard_writer.add_scalar(
+        #            'test/rouge2-F', rouges['rouge_2_f_score'], step)
+        #        self.tensorboard_writer.add_scalar(
+        #            'test/rougeL-F', rouges['rouge_l_f_score'], step)
 
     def _report_rouge(self, gold_path, can_path):
         self.logger.info("Calculating Rouge")

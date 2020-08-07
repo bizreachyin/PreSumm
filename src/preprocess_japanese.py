@@ -123,11 +123,9 @@ class PreSummDataConverter:
         self.CLS_VID = self.tokenizer.vocab[jb_processor.CLS_TOKEN]
         self.SEP_VID = self.tokenizer.vocab[jb_processor.SEP_TOKEN]
 
-    def __call__(self, raw_src: str, raw_tgt: str):
+    def __call__(self, raw_src: str):
         data = {}
         data.update(self._convert_src(raw_src))
-        data.update(self._convert_tgt(raw_tgt))
-        data['src_sent_labels'] = self._get_greedy_sents(raw_src, raw_tgt)
         return data
 
     def _convert_src(self, text: str) -> dict:
@@ -207,13 +205,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+#def main():
+if __name__=='__main__':
     args = parse_args()
     # Assume ndjson format
     df = pd.read_json(args.input_file, orient='record', lines=True)
-
+    df.dropna(inplace=True)
+    df.reset_index(drop=True, inplace=True)
     converter = PreSummDataConverter()
-    dataset = df.apply(lambda x: converter(getattr(x, args.src_col),
-                                           getattr(x, args.tgt_col)),
-                       axis=1)
-    torch.save(dataset, 'bert_data/jp.all.bert.pt')
+    dataset = df.apply(lambda x: converter(getattr(x, args.src_col)) ,axis=1)
+    torch.save(dataset, 'jp.batch.bert.pt')
